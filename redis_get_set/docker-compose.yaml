@@ -1,0 +1,42 @@
+version: '2'
+
+services:
+
+  redisstorage:
+    build:
+      context: ./redis
+      dockerfile: dockerfile
+    ports:
+      - "6380:6379"
+
+  http01:
+    depends_on:
+      - redisstorage
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - "8081:8000"
+
+  http02:
+    depends_on:
+      - redisstorage
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - "8082:8000"
+
+  nginx-balancer:
+    depends_on:
+      - http01
+      - http02
+    build:
+      context: ./nginx
+      dockerfile: dockerfile
+    links:
+      - "http01:http01"
+      - "http02:http02"
+    ports:
+      - "8000:8000"
+
